@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { usePuterStore } from "../lib/puter";
 
 const WipeApp = () => {
@@ -56,6 +56,11 @@ const WipeApp = () => {
         >
           Wipe App Data
         </button>
+        <nav className='resume-nav'>
+          <Link to="/" className="back-button">
+            <img src="/icons/back.svg" alt="back" className='w-2.5 h-2.5' />
+            <span className='text-gray-800 text-sm font-semibold'>Back to Homepage</span>
+          </Link> </nav>
       </div>
     </div>
   );

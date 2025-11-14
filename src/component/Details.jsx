@@ -2,33 +2,35 @@ import { cn } from "../lib/utils";
 import { Accordion, AccordionContent, AccordionHeader, AccordionItem } from "./Accordian";
 
 const ScoreBadge = ({ score = 0 }) => {
+  const numScore = typeof score === 'number' ? score : 0;
+  
   return (
     <div
       className={cn(
         "flex flex-row gap-1 items-center px-2 py-0.5 rounded-[96px]",
-        score > 69
+        numScore > 69
           ? "bg-badge-green"
-          : score > 39
+          : numScore > 39
           ? "bg-badge-yellow"
           : "bg-badge-red"
       )}
     >
       <img
-        src={score > 69 ? "/icons/check.svg" : "/icons/warning.svg"}
+        src={numScore > 69 ? "/icons/check.svg" : "/icons/warning.svg"}
         alt="score"
         className="size-4"
       />
       <p
         className={cn(
           "text-sm font-medium",
-          score > 69
+          numScore > 69
             ? "text-badge-green-text"
-            : score > 39
+            : numScore > 39
             ? "text-badge-yellow-text"
             : "text-badge-red-text"
         )}
       >
-        {score}/100
+        {numScore}/100
       </p>
     </div>
   );
@@ -44,6 +46,14 @@ const CategoryHeader = ({ title, categoryScore = 0 }) => {
 };
 
 const CategoryContent = ({ tips = [] }) => {
+  if (!Array.isArray(tips) || tips.length === 0) {
+    return (
+      <div className="text-gray-500 p-4">
+        No tips available for this category.
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 items-center w-full">
       <div className="bg-gray-50 w-full rounded-lg px-5 py-4 grid grid-cols-2 gap-4">
@@ -54,14 +64,14 @@ const CategoryContent = ({ tips = [] }) => {
               alt="score"
               className="size-5"
             />
-            <p className="text-xl text-gray-500 ">{tip.tip}</p>
+            <p className="text-xl text-gray-500">{tip.tip || 'No tip text'}</p>
           </div>
         ))}
       </div>
       <div className="flex flex-col gap-4 w-full">
         {tips.map((tip, index) => (
           <div
-            key={index + tip.tip}
+            key={index + (tip.tip || index)}
             className={cn(
               "flex flex-col gap-2 rounded-2xl p-4",
               tip.type === "good"
@@ -75,9 +85,9 @@ const CategoryContent = ({ tips = [] }) => {
                 alt="score"
                 className="size-5"
               />
-              <p className="text-xl font-semibold">{tip.tip}</p>
+              <p className="text-xl font-semibold">{tip.tip || 'No tip text'}</p>
             </div>
-            <p>{tip.explanation}</p>
+            <p>{tip.explanation || 'No explanation available'}</p>
           </div>
         ))}
       </div>
@@ -86,6 +96,24 @@ const CategoryContent = ({ tips = [] }) => {
 };
 
 const Details = ({ feedback }) => {
+  console.log("Details feedback:", feedback);
+
+  // Safely extract category data with defaults
+  const toneAndStyle = feedback?.toneAndStyle || feedback?.tone_and_style || { score: 0, tips: [] };
+  const content = feedback?.content || { score: 0, tips: [] };
+  const structure = feedback?.structure || { score: 0, tips: [] };
+  const skills = feedback?.skills || { score: 0, tips: [] };
+
+  if (!feedback || typeof feedback !== 'object') {
+    return (
+      <div className="bg-white rounded-2xl shadow-md w-full p-8">
+        <div className="text-center text-gray-500">
+          <p>No detailed feedback available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 w-full">
       <Accordion>
@@ -93,44 +121,47 @@ const Details = ({ feedback }) => {
           <AccordionHeader itemId="tone-style">
             <CategoryHeader
               title="Tone & Style"
-              categoryScore={feedback.toneAndStyle.score}
+              categoryScore={toneAndStyle.score || 0}
             />
           </AccordionHeader>
           <AccordionContent itemId="tone-style">
-            <CategoryContent tips={feedback.toneAndStyle.tips} />
+            <CategoryContent tips={toneAndStyle.tips || []} />
           </AccordionContent>
         </AccordionItem>
+        
         <AccordionItem id="content">
           <AccordionHeader itemId="content">
             <CategoryHeader
               title="Content"
-              categoryScore={feedback.content.score}
+              categoryScore={content.score || 0}
             />
           </AccordionHeader>
           <AccordionContent itemId="content">
-            <CategoryContent tips={feedback.content.tips} />
+            <CategoryContent tips={content.tips || []} />
           </AccordionContent>
         </AccordionItem>
+        
         <AccordionItem id="structure">
           <AccordionHeader itemId="structure">
             <CategoryHeader
               title="Structure"
-              categoryScore={feedback.structure.score}
+              categoryScore={structure.score || 0}
             />
           </AccordionHeader>
           <AccordionContent itemId="structure">
-            <CategoryContent tips={feedback.structure.tips} />
+            <CategoryContent tips={structure.tips || []} />
           </AccordionContent>
         </AccordionItem>
+        
         <AccordionItem id="skills">
           <AccordionHeader itemId="skills">
             <CategoryHeader
               title="Skills"
-              categoryScore={feedback.skills.score}
+              categoryScore={skills.score || 0}
             />
           </AccordionHeader>
           <AccordionContent itemId="skills">
-            <CategoryContent tips={feedback.skills.tips} />
+            <CategoryContent tips={skills.tips || []} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

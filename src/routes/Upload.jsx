@@ -82,53 +82,42 @@ const Upload = () => {
 
       console.log("Resume uploaded successfully to:", resumePath);
 
-      setStatusText("Converting PDF to image...");
-      let imageFile;
+      // Try to convert PDF to image, but continue even if it fails
+      let imagePath = null;
+      setStatusText("Converting PDF to image (optional)...");
       try {
-        imageFile = await convertPdfToImage(file);
-        if (!imageFile || !imageFile.file) {
-          throw new Error("Failed to convert PDF to image - no file returned.");
+        const imageFile = await convertPdfToImage(file);
+        if (imageFile && imageFile.file) {
+          console.log("PDF converted to image successfully");
+          
+          setStatusText("Uploading the image...");
+          const imageUploadResult = await fs.upload([imageFile.file]);
+          
+          if (imageUploadResult) {
+            let uploadedImage;
+            if (Array.isArray(imageUploadResult)) {
+              uploadedImage = imageUploadResult[0];
+            } else if (imageUploadResult && typeof imageUploadResult === 'object') {
+              uploadedImage = imageUploadResult;
+            }
+
+            if (uploadedImage) {
+              imagePath = uploadedImage.path || uploadedImage.uid || uploadedImage.id || uploadedImage.name;
+              console.log("Image uploaded successfully to:", imagePath);
+            }
+          }
         }
-        console.log("PDF converted to image successfully");
       } catch (conversionErr) {
-        console.error("PDF conversion error:", conversionErr);
-        throw new Error(`PDF conversion failed: ${conversionErr.message}`);
+        console.warn("PDF conversion failed, continuing without image:", conversionErr);
+        // Continue without image - the AI can still read the PDF
       }
-
-      setStatusText("Uploading the image...");
-      const imageUploadResult = await fs.upload([imageFile.file]);
-      console.log("Image upload result:", imageUploadResult);
-
-      if (!imageUploadResult) {
-        throw new Error("Image upload failed: No response from server");
-      }
-
-      let uploadedImage;
-      if (Array.isArray(imageUploadResult)) {
-        uploadedImage = imageUploadResult[0];
-      } else if (imageUploadResult && typeof imageUploadResult === 'object') {
-        uploadedImage = imageUploadResult;
-      }
-
-      if (!uploadedImage) {
-        throw new Error("Image upload failed: No image data returned");
-      }
-
-      const imagePath = uploadedImage.path || uploadedImage.uid || uploadedImage.id || uploadedImage.name;
-      
-      if (!imagePath) {
-        console.error("Image upload result structure:", uploadedImage);
-        throw new Error("Image upload failed: Could not determine file path");
-      }
-
-      console.log("Image uploaded successfully to:", imagePath);
 
       setStatusText("Preparing data...");
       const uuid = generateUUID();
       const data = {
         id: uuid,
         resumePath: resumePath,
-        imagePath: imagePath,
+        imagePath: imagePath || resumePath, // Use resume path if no image
         companyName,
         jobTitle,
         jobDescription,
@@ -141,24 +130,88 @@ const Upload = () => {
       setStatusText("Analyzing resume with AI...");
       console.log("Calling AI feedback with path:", resumePath);
       
-      const feedback = await ai.feedback(
-        resumePath,
-        prepareInstructions({ jobTitle, jobDescription })
-      );
+      const instructions = prepareInstructions({ jobTitle, jobDescription });
+      console.log("AI Instructions:", instructions);
+      
+      const feedback = await ai.feedback(resumePath, instructions);
 
-      console.log("AI feedback received:", feedback);
+      console.log("=== FULL AI RESPONSE ===");
+      console.log(JSON.stringify(feedback, null, 2));
+      console.log("=== END RESPONSE ===");
 
       if (!feedback || !feedback.message) {
         throw new Error("Failed to analyze the resume: No feedback received");
       }
 
-      const feedbackText =
-        typeof feedback.message.content === "string"
-          ? feedback.message.content
-          : feedback.message.content[0]?.text || JSON.stringify(feedback.message.content);
+      // Extract the text content
+      let feedbackText = "";
+      const content = feedback.message.content;
+      
+      console.log("Content type:", typeof content);
+      console.log("Is array:", Array.isArray(content));
+      console.log("Content:", content);
 
-      console.log("Parsing feedback text...");
-      data.feedback = JSON.parse(feedbackText);
+      if (typeof content === "string") {
+        feedbackText = content;
+      } else if (Array.isArray(content)) {
+        // Find text content in array
+        for (const item of content) {
+          if (item.type === "text" && item.text) {
+            feedbackText += item.text;
+          }
+        }
+      } else if (content?.text) {
+        feedbackText = content.text;
+      }
+
+      console.log("=== RAW FEEDBACK TEXT ===");
+      console.log(feedbackText);
+      console.log("=== END RAW TEXT ===");
+
+      if (!feedbackText) {
+        throw new Error("No text content found in AI response");
+      }
+
+      // Clean up the response - remove markdown code blocks if present
+      let cleanedFeedback = feedbackText.trim();
+      cleanedFeedback = cleanedFeedback.replace(/```json\n?/g, "");
+      cleanedFeedback = cleanedFeedback.replace(/```\n?/g, "");
+      cleanedFeedback = cleanedFeedback.trim();
+
+      // Remove any text before the first { or after the last }
+      const firstBrace = cleanedFeedback.indexOf('{');
+      const lastBrace = cleanedFeedback.lastIndexOf('}');
+      
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        cleanedFeedback = cleanedFeedback.substring(firstBrace, lastBrace + 1);
+      }
+
+      console.log("=== CLEANED FEEDBACK ===");
+      console.log(cleanedFeedback);
+      console.log("=== END CLEANED ===");
+
+      try {
+        const parsedFeedback = JSON.parse(cleanedFeedback);
+        console.log("=== PARSED FEEDBACK ===");
+        console.log(JSON.stringify(parsedFeedback, null, 2));
+        console.log("=== END PARSED ===");
+        
+        data.feedback = parsedFeedback;
+        
+        // Verify the structure
+        if (!parsedFeedback.overallScore) {
+          console.warn("WARNING: No overallScore in feedback");
+        }
+        if (!parsedFeedback.toneAndStyle?.score) {
+          console.warn("WARNING: No toneAndStyle.score in feedback");
+        }
+      } catch (parseErr) {
+        console.error("=== PARSE ERROR ===");
+        console.error(parseErr);
+        console.error("Attempted to parse:", cleanedFeedback);
+        console.error("=== END PARSE ERROR ===");
+        throw new Error(`Failed to parse AI response: ${parseErr.message}`);
+      }
       await kv.set(`resume:${uuid}`, JSON.stringify(data));
 
       setStatusText("Analysis complete! Redirecting...");
@@ -166,7 +219,7 @@ const Upload = () => {
       
       setTimeout(() => {
         navigate(`/resume/${uuid}`);
-      }, 5000);
+      }, 500);
     } catch (err) {
       console.error("Error during analysis:", err);
       console.error("Error stack:", err.stack);

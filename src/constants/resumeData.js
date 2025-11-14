@@ -91,42 +91,96 @@ export const resumes = [
   },
 ];
 
-export const AIResponseFormat = `
-interface Feedback {
-  overallScore: number;
-  ATS: {
-    score: number;
-    tips: { type: "good" | "improve"; tip: string; }[];
-  };
-  toneAndStyle: {
-    score: number;
-    tips: { type: "good" | "improve"; tip: string; explanation: string; }[];
-  };
-  content: {
-    score: number;
-    tips: { type: "good" | "improve"; tip: string; explanation: string; }[];
-  };
-  structure: {
-    score: number;
-    tips: { type: "good" | "improve"; tip: string; explanation: string; }[];
-  };
-  skills: {
-    score: number;
-    tips: { type: "good" | "improve"; tip: string; explanation: string; }[];
-  };
-}
-`;
+export const AIResponseFormat = `{
+  "overallScore": number (0-100),
+  "ATS": {
+    "score": number (0-100),
+    "tips": [
+      "string tip 1",
+      "string tip 2"
+    ]
+  },
+  "toneAndStyle": {
+    "score": number (0-100),
+    "tips": [
+      {
+        "type": "good" or "improve",
+        "tip": "brief tip text",
+        "explanation": "detailed explanation"
+      }
+    ]
+  },
+  "content": {
+    "score": number (0-100),
+    "tips": [
+      {
+        "type": "good" or "improve",
+        "tip": "brief tip text",
+        "explanation": "detailed explanation"
+      }
+    ]
+  },
+  "structure": {
+    "score": number (0-100),
+    "tips": [
+      {
+        "type": "good" or "improve",
+        "tip": "brief tip text",
+        "explanation": "detailed explanation"
+      }
+    ]
+  },
+  "skills": {
+    "score": number (0-100),
+    "tips": [
+      {
+        "type": "good" or "improve",
+        "tip": "brief tip text",
+        "explanation": "detailed explanation"
+      }
+    ]
+  }
+}`;
 
-export const prepareInstructions = ({ jobTitle, jobDescription, AIResponseFormat }) =>
-  `You are an expert in ATS (Applicant Tracking System) and resume analysis.
-Please analyze and rate this resume and suggest how to improve it.
-The rating can be low if the resume is bad.
-Be thorough and detailed. Don't be afraid to point out any mistakes or areas for improvement.
-If there is a lot to improve, don't hesitate to give low scores. This is to help the user to improve their resume.
-If available, use the job description for the job user is applying to to give more detailed feedback.
-If provided, take the job description into consideration.
-The job title is: ${jobTitle}
-The job description is: ${jobDescription}
-Provide the feedback using the following format: ${AIResponseFormat}
-Return the analysis as a JSON object, without any other text and without the backticks.
-Do not include any other text or comments.`;
+export const prepareInstructions = ({ jobTitle, jobDescription }) => {
+  const instruction = `You are an expert resume reviewer and ATS (Applicant Tracking System) analyst.
+
+TASK: Analyze the provided resume and provide detailed, actionable feedback.
+
+JOB CONTEXT:
+- Job Title: ${jobTitle || "Not specified"}
+- Job Description: ${jobDescription || "Not specified"}
+
+ANALYSIS REQUIREMENTS:
+1. Review the resume thoroughly and critically
+2. Be honest with scoring - don't inflate scores
+3. Consider ATS compatibility
+4. Evaluate content relevance to the job description
+5. Assess professional tone and formatting
+6. Check for completeness and impact
+
+SCORING GUIDE:
+- 90-100: Exceptional, very few improvements needed
+- 70-89: Good, some improvements recommended
+- 50-69: Average, several improvements needed
+- 30-49: Below average, significant improvements required
+- 0-29: Poor, major overhaul needed
+
+RESPONSE FORMAT:
+You MUST respond with ONLY valid JSON in exactly this format (no markdown, no backticks, no additional text):
+
+${AIResponseFormat}
+
+IMPORTANT RULES:
+1. Return ONLY the JSON object, nothing else
+2. No markdown formatting (no \`\`\`json)
+3. All scores must be numbers between 0-100
+4. Each category should have 2-5 tips
+5. Mix of "good" and "improve" type tips where appropriate
+6. Be specific and actionable in tips and explanations
+7. If job description is provided, tailor feedback to match requirements
+
+Begin your analysis now and return only the JSON response:`;
+
+  return instruction;
+};

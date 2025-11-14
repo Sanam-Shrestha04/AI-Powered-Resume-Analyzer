@@ -8,12 +8,12 @@ async function loadPdfJs() {
 
   isLoading = true;
   
-  loadPromise = import("pdfjs-dist/build/pdf.mjs").then((lib) => {
-    // Use CDN worker instead of local file
-    lib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${lib.version}/pdf.worker.min.mjs`;
+  loadPromise = import("pdfjs-dist").then(async (lib) => {
+    // Import the worker as a module
+    const pdfjsWorker = await import("pdfjs-dist/build/pdf.worker.mjs");
     
-    console.log("PDF.js loaded, version:", lib.version);
-    console.log("Worker source:", lib.GlobalWorkerOptions.workerSrc);
+    // Don't set workerSrc, let it use the imported worker
+    console.log("PDF.js loaded successfully");
     
     pdfjsLib = lib;
     isLoading = false;
@@ -41,7 +41,13 @@ export async function convertPdfToImage(file) {
     const arrayBuffer = await file.arrayBuffer();
     console.log("PDF file read, size:", arrayBuffer.byteLength, "bytes");
     
-    const loadingTask = lib.getDocument({ data: arrayBuffer });
+    const loadingTask = lib.getDocument({ 
+      data: arrayBuffer,
+      useWorkerFetch: false,
+      isEvalSupported: false,
+      useSystemFonts: true
+    });
+    
     const pdf = await loadingTask.promise;
     console.log("PDF loaded, pages:", pdf.numPages);
     
@@ -93,7 +99,7 @@ export async function convertPdfToImage(file) {
           }
         },
         "image/png",
-        0.95 // Slight compression to reduce file size
+        0.95
       );
     });
   } catch (err) {
