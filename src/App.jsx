@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import { usePuterStore } from "./lib/puter";
 import Upload from "./routes/Upload";
 import Resume from "./routes/resume";
+import WipeApp from "./routes/WipeApp";
 
 function App() {
   const { init } = usePuterStore();
@@ -21,6 +22,7 @@ function App() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/resume/:id" element={<Resume />} />
+        <Route path="/wipe" element={<WipeApp />} />
       </Routes>
     </BrowserRouter>
   );
