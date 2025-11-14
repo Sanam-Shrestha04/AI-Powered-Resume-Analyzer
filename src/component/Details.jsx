@@ -1,4 +1,4 @@
-import { cn } from "~/lib/utils";
+import { cn } from "../lib/utils";
 import { Accordion, AccordionContent, AccordionHeader, AccordionItem } from "./Accordian";
 
 const ScoreBadge = ({ score = 0 }) => {
