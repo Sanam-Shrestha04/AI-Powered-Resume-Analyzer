@@ -328,7 +328,7 @@ const Upload = () => {
             </>
           ) : (
             <>
-              <h2>Drop your resume for an ATS score and improvement tips</h2>
+              <h2>Drop your resume for an ResumeIQ score and improvement tips</h2>
               {!auth.isAuthenticated && (
                 <div className="mt-4 p-4 bg-yellow-100 rounded-lg">
                   <p className="text-yellow-800">Please sign in to upload and analyze your resume.</p>

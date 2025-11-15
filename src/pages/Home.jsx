@@ -6,7 +6,7 @@ import Navbar from "../component/Navbar";
 
 export function meta() {
   return [
-    { title: "Resumind" },
+    { title: "ResumeIQ" },
     { name: "description", content: "Smart feedback for your dream job!" },
   ];
 }

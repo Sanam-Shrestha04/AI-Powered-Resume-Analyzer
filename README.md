@@ -1,13 +1,11 @@
 # AI-Powered Resume Analyzer
 
-An intelligent resume analysis platform that provides comprehensive ATS scoring and actionable feedback to help job seekers optimize their resumes for their dream jobs.
-
-![Resume Analyzer Banner](public/images/bg-main.svg)
+An intelligent resume analysis platform that provides comprehensive ResumeIQ scoring and actionable feedback to help job seekers optimize their resumes for their dream jobs.
 
 ## Features
 
 - ** AI-Powered Analysis**: Leverages Claude AI to provide deep resume insights
-- ** ATS Score**: Get your Applicant Tracking System compatibility score
+- ** ResumeIQ Score**: Get your ResumeIQ compatibility score
 - ** Job-Specific Feedback**: Tailored suggestions based on job title and description
 - ** Category Scoring**: Detailed breakdown across:
   - Tone & Style
@@ -21,9 +19,9 @@ An intelligent resume analysis platform that provides comprehensive ATS scoring 
 
 ##  Live Demo
 
-🔗 **[View Live Application](#)** *(Add your deployment link here)*
+ **[View Live Application](#)** https://ai-powered-applicant-tracking-system-3n1c-itmcbi4h5.vercel.app/auth?next=/
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Frontend
 - **React** - UI library
@@ -52,7 +50,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/ai-resume-analyzer.git
+git clone https://github.com/Sanam-Shrestha04/AI-Powered-Resume-Analyzer
 cd ai-resume-analyzer
 ```
 

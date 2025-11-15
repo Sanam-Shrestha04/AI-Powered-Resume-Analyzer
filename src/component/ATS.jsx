@@ -11,10 +11,10 @@ const ATS = ({ score = 0, suggestions = [] }) => {
   );
 
   return (
-    <div className={`bg-gradient-to-b ${gradientClass} to-white rounded-2xl shadow-md w-full p-6`}>
+    <div className={`bg-linear-to-b ${gradientClass} to-white rounded-2xl shadow-md w-full p-6`}>
       <div className="flex items-center gap-4 mb-6">
         <img src={iconSrc} alt="ATS Score Icon" className="w-12 h-12" />
-        <h2 className="text-2xl font-bold">ATS Score - {score}/100</h2>
+        <h2 className="text-2xl font-bold">ResumeIQ Score - {score}/100</h2>
       </div>
 
       <div className="mb-6">
