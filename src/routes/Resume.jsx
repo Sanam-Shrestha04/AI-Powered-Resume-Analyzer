@@ -26,90 +26,52 @@ const Resume = () => {
   // Load resume data
   useEffect(() => {
     const loadResume = async () => {
-      if (!id) {
-        setError("No resume ID provided");
-        setLoadingResume(false);
-        return;
-      }
+      if (!id || !auth.isAuthenticated) return;
 
       try {
         setLoadingResume(true);
-        console.log("Loading resume with ID:", id);
-
-        // Get resume data from KV store
         const resumeData = await kv.get(`resume:${id}`);
-        console.log("Resume data from KV:", resumeData);
-
+        
         if (!resumeData) {
-          setError("Resume not found");
+          setError("Resume not found. It may have been deleted or the link is incorrect.");
           setLoadingResume(false);
           return;
         }
 
         const data = JSON.parse(resumeData);
-        console.log("Parsed resume data:", data);
 
-        // Load PDF file
+        // Load PDF
         if (data.resumePath) {
-          console.log("Loading PDF from:", data.resumePath);
           const resumeBlob = await fs.read(data.resumePath);
-
           if (resumeBlob) {
-            const pdfBlob = new Blob([resumeBlob], { type: 'application/pdf' });
-            const pdfUrl = URL.createObjectURL(pdfBlob);
+            const pdfUrl = URL.createObjectURL(new Blob([resumeBlob], { type: 'application/pdf' }));
             setResumeUrl(pdfUrl);
-            console.log("PDF loaded successfully");
-          } else {
-            console.warn("Failed to load PDF blob");
           }
         }
 
-        // Load image file
+        // Load image
         if (data.imagePath) {
-          console.log("Loading image from:", data.imagePath);
           try {
             const imageBlob = await fs.read(data.imagePath);
-
             if (imageBlob) {
-              // Check if it's already a blob or needs conversion
-              const imgBlob = imageBlob instanceof Blob 
-                ? imageBlob 
-                : new Blob([imageBlob], { type: 'image/png' });
-              
-              const imgUrl = URL.createObjectURL(imgBlob);
+              const imgUrl = URL.createObjectURL(new Blob([imageBlob], { type: 'image/png' }));
               setImageUrl(imgUrl);
-              console.log("Image loaded successfully");
-            } else {
-              console.warn("Failed to load image blob");
             }
-          } catch (imgErr) {
-            console.warn("Image loading failed, but continuing:", imgErr);
-            // If image fails, we can still show the PDF
+          } catch (err) {
+            console.warn("Image load failed:", err);
           }
         }
 
-        // Set feedback data
-        if (data.feedback) {
-          console.log("=== FULL FEEDBACK STRUCTURE ===");
-          console.log(JSON.stringify(data.feedback, null, 2));
-          console.log("=== END FEEDBACK STRUCTURE ===");
-          setFeedback(data.feedback);
-          console.log("Feedback loaded:", data.feedback);
-        } else {
-          console.warn("No feedback data found");
-        }
-
+        setFeedback(data.feedback);
         setLoadingResume(false);
       } catch (err) {
-        console.error("Error loading resume:", err);
+        console.error("Load error:", err);
         setError(`Failed to load resume: ${err.message}`);
         setLoadingResume(false);
       }
     };
 
-    if (auth.isAuthenticated && id) {
-      loadResume();
-    }
+    loadResume();
   }, [id, auth.isAuthenticated, fs, kv]);
 
   // Cleanup URLs on unmount

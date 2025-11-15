@@ -196,13 +196,58 @@ const Upload = () => {
         console.log(JSON.stringify(parsedFeedback, null, 2));
         console.log("=== END PARSED ===");
         
-        data.feedback = parsedFeedback;
+        // Transform the feedback to ensure correct format
+        const transformedFeedback = {
+          overallScore: parsedFeedback.overallScore 
+            || parsedFeedback.overall_score 
+            || (parsedFeedback.overall_rating ? parsedFeedback.overall_rating * 10 : 0)
+            || 0,
+          ATS: {
+            score: parsedFeedback.ATS?.score 
+              || parsedFeedback.ats?.score 
+              || parsedFeedback.ATS?.rating * 10
+              || 0,
+            tips: parsedFeedback.ATS?.tips 
+              || parsedFeedback.ats?.tips 
+              || parsedFeedback.ATS?.suggestions
+              || parsedFeedback.ats?.suggestions
+              || []
+          },
+          toneAndStyle: {
+            score: parsedFeedback.toneAndStyle?.score 
+              || parsedFeedback.tone_and_style?.score 
+              || parsedFeedback.tone?.score
+              || 0,
+            tips: parsedFeedback.toneAndStyle?.tips 
+              || parsedFeedback.tone_and_style?.tips 
+              || parsedFeedback.tone?.tips
+              || []
+          },
+          content: {
+            score: parsedFeedback.content?.score || 0,
+            tips: parsedFeedback.content?.tips || []
+          },
+          structure: {
+            score: parsedFeedback.structure?.score || 0,
+            tips: parsedFeedback.structure?.tips || []
+          },
+          skills: {
+            score: parsedFeedback.skills?.score || 0,
+            tips: parsedFeedback.skills?.tips || []
+          }
+        };
+        
+        console.log("=== TRANSFORMED FEEDBACK ===");
+        console.log(JSON.stringify(transformedFeedback, null, 2));
+        console.log("=== END TRANSFORMED ===");
+        
+        data.feedback = transformedFeedback;
         
         // Verify the structure
-        if (!parsedFeedback.overallScore) {
+        if (!transformedFeedback.overallScore) {
           console.warn("WARNING: No overallScore in feedback");
         }
-        if (!parsedFeedback.toneAndStyle?.score) {
+        if (!transformedFeedback.toneAndStyle?.score) {
           console.warn("WARNING: No toneAndStyle.score in feedback");
         }
       } catch (parseErr) {

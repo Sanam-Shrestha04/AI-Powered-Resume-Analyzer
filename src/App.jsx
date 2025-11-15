@@ -5,8 +5,8 @@ import Auth from "./routes/Auth";
 import Home from "./pages/Home";
 import { usePuterStore } from "./lib/puter";
 import Upload from "./routes/Upload";
-import Resume from "./routes/resume";
 import WipeApp from "./routes/WipeApp";
+import Resume from "./routes/Resume";
 
 function App() {
   const { init } = usePuterStore();
