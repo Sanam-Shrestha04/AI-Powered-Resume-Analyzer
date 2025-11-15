@@ -19,7 +19,7 @@ An intelligent resume analysis platform that provides comprehensive ResumeIQ sco
 
 ##  Live Demo
 
- **[View Live Application](#)** https://ai-powered-applicant-tracking-system-3n1c-itmcbi4h5.vercel.app/auth?next=/
+ **[View Live Application](#)** https://ai-powered-applicant-tracking-syste-nine.vercel.app/
 
 ##  Tech Stack
 
